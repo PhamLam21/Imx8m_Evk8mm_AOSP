@@ -1,0 +1,7 @@
+package vendor.lampt.led@1.0;
+
+interface ILedHidl {
+	setLed(uint32_t value) generates (uint32_t status);
+	getLed() generates (uint32_t status);
+};
+

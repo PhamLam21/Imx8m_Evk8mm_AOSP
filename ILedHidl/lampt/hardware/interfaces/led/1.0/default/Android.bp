@@ -1,0 +1,20 @@
+// FIXME: your file license if you have one
+
+cc_binary {
+    name: "vendor.lampt.led@1.0-service",
+    relative_install_path: "hw",
+    vendor: true, //Code cua vendor khong phai cua android
+    proprietary: true,
+    init_rc: ["vendor.lampt.led@1.0-service.rc"],
+    vintf_fragments: ["vendor.lampt.led@1.0-service.xml"],
+    srcs: [
+        "LedHidl.cpp",
+        "service.cpp",
+    ],
+    shared_libs: [
+        "libhidlbase",
+        "libutils",
+        "liblog",
+        "vendor.lampt.led@1.0",
+    ],
+}

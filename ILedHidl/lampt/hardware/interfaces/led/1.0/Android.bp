@@ -1,0 +1,13 @@
+
+hidl_interface {
+    name: "vendor.lampt.led@1.0",
+    root: "vendor.lampt",
+    //system_ext_specific: true,
+    srcs: [
+        "ILedHidl.hal",
+    ],
+    interfaces: [
+        "android.hidl.base@1.0",
+    ],
+    gen_java: true,
+}

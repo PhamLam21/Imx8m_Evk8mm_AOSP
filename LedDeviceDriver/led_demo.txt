@@ -1,0 +1,184 @@
+/*
+ * Copyright (C) 2025 Pham Tung Lam
+ */
+
+#include <linux/kernel.h>
+#include <linux/module.h>
+#include <linux/init.h>
+#include <linux/fs.h>
+#include <linux/cdev.h>
+#include <linux/device.h>
+#include <linux/mutex.h>
+#include <linux/platform_device.h>
+#include <linux/of.h>
+#include <linux/gpio/consumer.h>
+#include <linux/uaccess.h>
+
+#define DEVICE_NAME "led_demo"
+#define CLASS_NAME  "led_class"
+
+struct led_demo_device {
+	struct platform_device *pdev;
+	struct cdev cdev_led;
+	struct gpio_desc *led;
+	struct mutex lock;
+};
+static struct class *dev_class;
+static dev_t dev_num; //Major & minor number
+static struct led_demo_device *led_dev;
+
+/*Driver functions*/
+static int led_demo_open(struct inode *inode, struct file *file);
+static int led_demo_release(struct inode *inode, struct file *file);
+static ssize_t led_demo_read(struct file *file, char __user *buf, size_t len, loff_t *offset);
+static ssize_t led_demo_write(struct file *file, const char __user *buf, size_t len, loff_t *offset);
+/******************/
+
+static struct file_operations fops = {
+	.owner = THIS_MODULE,
+  .open = led_demo_open,
+  .read = led_demo_read,
+  .write = led_demo_write,
+  .release = led_demo_release,
+};
+
+static int led_demo_open(struct inode *inode, struct file *file)
+{
+	return 0;
+}
+
+static int led_demo_release(struct inode *inode, struct file *file)
+{
+  return 0;
+}
+static ssize_t led_demo_read(struct file *file, char __user *buf, size_t len, loff_t *offset)
+{
+  uint8_t gpio_state;
+
+  mutex_lock(&led_dev->lock);
+  gpio_state = gpiod_get_value(led_dev->led);
+  mutex_unlock(&led_dev->lock);
+
+  if (*offset > 0)
+    return 0;
+
+	len = 1;
+  if (copy_to_user(buf, &gpio_state, len))
+    return -EFAULT;
+
+  *offset += sizeof(gpio_state);
+  return sizeof(gpio_state);
+}
+static ssize_t led_demo_write(struct file *file, const char __user *buf, size_t len, loff_t *offset)
+{
+  char kbuf[4]; // Buffer chứa dữ liệu từ user-space
+  int val;
+
+  if (len > 3)
+    return -EINVAL;
+
+  if (copy_from_user(kbuf, buf, len))
+    return -EFAULT;
+
+  kbuf[len] = '\0';
+  if (kstrtoint(kbuf, 10, &val))
+    return -EINVAL;
+
+  pr_info("User input: %d\n", val);
+
+  mutex_lock(&led_dev->lock);
+  gpiod_set_value(led_dev->led, val);
+  mutex_unlock(&led_dev->lock);
+
+  return len;
+}
+
+static int led_demo_probe(struct platform_device *pdev)
+{
+  pr_info("demo_led_probe called\n");
+
+  led_dev = devm_kzalloc(&pdev->dev, sizeof(struct led_demo_device), GFP_KERNEL);
+  if (!led_dev)
+    return -ENOMEM;
+
+  mutex_init(&led_dev->lock);
+  led_dev->pdev = pdev;
+
+  pr_info("Platform device: %s\n", pdev->name);
+  led_dev->led = devm_gpiod_get(&pdev->dev, "user", GPIOD_OUT_LOW);
+  if (IS_ERR(led_dev->led)) {
+    pr_err("Failed to get GPIO\n");
+    return PTR_ERR(led_dev->led);
+  }
+
+	// Cấp phát động major number
+  if((alloc_chrdev_region(&dev_num, 0, 1, DEVICE_NAME)) <0){
+    pr_err("Cannot allocate major number\n");
+		goto Failed;
+  }
+  pr_info("Major = %d Minor = %d \n", MAJOR(dev_num), MINOR(dev_num));
+
+	//Đăng ký sử dụng thiết bị tại /dev/
+  cdev_init(&led_dev->cdev_led, &fops);
+	if((cdev_add(&led_dev->cdev_led, dev_num, 1)) < 0){
+    pr_err("Cannot add the device to the system\n");
+		unregister_chrdev_region(dev_num, 1);
+    goto Failed;
+  }
+
+	// Tạo class cho thiết bị
+  dev_class = class_create(THIS_MODULE, CLASS_NAME);
+  if (IS_ERR(dev_class)) {
+    cdev_del(&led_dev->cdev_led);
+    unregister_chrdev_region(dev_num, 1);
+		goto Failed;
+  }
+
+	// Tạo thiết bị
+  if(IS_ERR(device_create(dev_class, NULL, dev_num, NULL, DEVICE_NAME))){
+    pr_err( "Cannot create the Device \n");
+    class_destroy(dev_class);
+    cdev_del(&led_dev->cdev_led);
+    unregister_chrdev_region(dev_num, 1);
+		goto Failed;
+  }
+
+	platform_set_drvdata(pdev, led_dev); //Luu dữ lieu led_dev vào pdev cho ham khac truy cay qua pdev
+  pr_info("demo_led device created: /dev/led_demo\n");
+  return 0;
+
+Failed:
+	return -1;
+}
+static int led_demo_remove(struct platform_device *pdev)
+{
+	struct led_demo_device *led_dev = platform_get_drvdata(pdev);
+
+  gpiod_set_value(led_dev->led, 0);
+  device_destroy(dev_class, dev_num);
+  class_destroy(dev_class);
+	cdev_del(&led_dev->cdev_led);	
+  unregister_chrdev_region(dev_num, 1);
+  mutex_destroy(&led_dev->lock);
+  pr_info("demo_led removed\n");
+  return 0;
+}
+static const struct of_device_id led_demo_table[] = {
+  { .compatible = "gpio-leds" },
+  { /* NULL */ },
+};
+MODULE_DEVICE_TABLE(of, led_demo_table);
+static struct platform_driver led_demo_driver = {
+  .probe = led_demo_probe,
+  .remove = led_demo_remove,
+  .driver = {
+    .name = "led_demo",
+    .of_match_table = led_demo_table,
+    .owner = THIS_MODULE,
+  },
+};
+module_platform_driver(led_demo_driver);
+
+MODULE_LICENSE("GPL");
+MODULE_AUTHOR("PHAMLAM");
+MODULE_DESCRIPTION("led demo driver");
