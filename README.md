@@ -55,7 +55,7 @@ Vd: việc scan wifi và bluetooth -> người dùng nhấn scan thì việc x�
 - Conventional HAL : implement thư viện .so -> lỗi thì lỗi toàn bộ
 - Binderize -> build ra file binary không còn sharelib
 <p align = "center">
-<img src = "https://github.com/PhamLam21/Imx8m_Evk8mm_AOSP/blob/main/20200805204512893.jpg" width = "400" height = "200">  
+<img src = "https://github.com/PhamLam21/Imx8m_Evk8mm_AOSP/blob/main/20200805204512893.jpg" width = "600" height = "600">  
 
 - version: 
     - 8.x về trước sử dụng legacy HAL
