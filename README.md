@@ -18,7 +18,7 @@
 ## GKI modules  
 <p align = "center">
 <img src = "https://static1.xdaimages.com/wordpress/wp-content/uploads/2021/09/New-GKI-apprach-to-isolate-vendor-modules-reduce-fragmentation.jpg" width = "400" height = "200">  
- 
+
 - GKI modules -> module gg viết sẵn -> hỗ trợ test rất kĩ -> thư mục kernel -> kernel gốc
 - vendor modules -> modules nhà phát triển viết ->  có thể sửa đổi, giao tiếp GKI qua KMI (kernel module interface) -> vendor (viet driver kernel trong vendor)  
 
@@ -36,10 +36,13 @@
 - HAL -> Service trao đổi qua binder IPC -> 1 service hỏng không ảnh hưởng đến các serice khác trong HAL
 - Conventional HAL : implement thư viện .so -> lỗi thì lỗi toàn bộ
 - Binderize -> build ra file binary không còn sharelib
+<p align = "center">
+<img src = "https://img-blog.csdnimg.cn/20200805204512893.jpg?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3lpcmFuZmVuZw==,size_16,color_FFFFFF,t_70" width = "400" height = "200">  
+
 - version: 
-    - < 8.x legacy HAL
-	- 8.x HIDL
-	- > 11. AIDL
+    - 8.x về trước sử dụng legacy HAL
+	- 8.x đến 10.x sử dụng HIDL
+	- 11.x về sau sử dụng AIDL  
 - Tạo mới HIDL    
     - Tạo các file cần thiết
 	- vendor - lampt (thay bang tên cty làm sp) - hardware - interfaces - led (ten HAL) - 1.0 (phien ban)
