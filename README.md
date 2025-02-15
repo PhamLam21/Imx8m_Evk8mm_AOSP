@@ -119,7 +119,7 @@ service vendor.lampt.led-1-0 /vendor/bin/hw/vendor.lampt.led@1.0-service
 ```  
 PRODUCT_PACKAGES += vendor.lampt.led@1.0-service
 ```  
-### Khai báo để cấp quyền sepolyci  
+### Khai báo để cấp quyền sepolicy  
 - Thêm vào device/nxp/imx8mm/sepolicy/file_contexts
 ```  
 /vendor/bin/hw/vendor\.lampt\.led@1\.0-service u:object_r:hal_lamptled_exec:s0
