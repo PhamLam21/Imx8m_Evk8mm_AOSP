@@ -18,6 +18,7 @@
 ## GKI modules  
 <p align = "center">
 <img src = "https://static1.xdaimages.com/wordpress/wp-content/uploads/2021/09/New-GKI-apprach-to-isolate-vendor-modules-reduce-fragmentation.jpg" width = "400" height = "200">  
+ 
 - GKI modules -> module gg viết sẵn -> hỗ trợ test rất kĩ -> thư mục kernel -> kernel gốc
 - vendor modules -> modules nhà phát triển viết ->  có thể sửa đổi, giao tiếp GKI qua KMI (kernel module interface) -> vendor (viet driver kernel trong vendor)  
 
