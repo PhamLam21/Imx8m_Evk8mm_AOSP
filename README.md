@@ -37,7 +37,7 @@
 - Conventional HAL : implement thư viện .so -> lỗi thì lỗi toàn bộ
 - Binderize -> build ra file binary không còn sharelib
 <p align = "center">
-<img src = "https://img-blog.csdnimg.cn/20200805204512893.jpg?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3lpcmFuZmVuZw==,size_16,color_FFFFFF,t_70" width = "400" height = "200">  
+<img src = "https://github.com/PhamLam21/Imx8m_Evk8mm_AOSP/blob/main/20200805204512893.jpg" width = "400" height = "200">  
 
 - version: 
     - 8.x về trước sử dụng legacy HAL
