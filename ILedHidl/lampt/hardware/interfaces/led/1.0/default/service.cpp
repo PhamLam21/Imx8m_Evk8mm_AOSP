@@ -12,7 +12,7 @@ using ::android::OK;
 using ::vendor::lampt::led::V1_0::ILedHidl;
 using ::vendor::lampt::led::implementation::LedHidl;
 
-int main(int /*argc*/, char* /*argv*/) {
+int main(int /*argc*/, char* /*argv*/ []) {
     ALOGI("Loading LedControl HIDL HAL...");
 
     configureRpcThreadpool(1, true /*will join*/);
