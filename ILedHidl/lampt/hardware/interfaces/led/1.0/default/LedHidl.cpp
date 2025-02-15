@@ -1,23 +1,20 @@
 // FIXME: your file license if you have one
-#define LOG_TAG "vendor.lampt.led.iLedHidl"
 
 #include "LedHidl.h"
 
-namespace vendor {
-namespace lampt {
-namespace led {
-namespace V1_0 {
-namespace implementation {
+namespace vendor::lampt::led::implementation {
 
 // Methods from ::vendor::lampt::led::V1_0::ILedHidl follow.
-Return<uint32_t> LedHidl::setLed(uint32_t value) {
-    ALOGI("%s: OK with value = %d", __func__, value);
-    return uint32_t {};
+Return<bool> LedHidl::setLed(const hidl_string& value) {
+    // TODO implement
+    return true;
 }
 
-Return<uint32_t> LedHidl::getLed() {
-    ALOGI("%s: OK", __func__);
-    return uint32_t {};
+Return<void> LedHidl::getLed(getLed_cb _hidl_cb) {
+    // TODO implement
+
+    _hidl_cb("on");
+    return Void();
 }
 
 
@@ -27,8 +24,4 @@ Return<uint32_t> LedHidl::getLed() {
     //return new LedHidl();
 //}
 //
-}  // namespace implementation
-}  // namespace V1_0
-}  // namespace led
-}  // namespace lampt
-}  // namespace vendor
+}  // namespace vendor::lampt::led::implementation

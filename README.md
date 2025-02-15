@@ -47,6 +47,9 @@
 Tìm hiểu partiontion: [AOSP](https://source.android.com/docs/core/architecture/partitions)  
 Tìm hiểu dynamic partition : [AOSP](https://source.android.com/docs/core/ota/dynamic_partitions/implement)  
 ## HAL
+- Hal để người dùng phía trên giao tiếp với phần cứng đỡ phức tạp -> thể hiện tính trừu tượng -> viết các API đơn giản hóa cho người dùng không cần hiểu sâu về phần cứng hoạt động như nào.
+Vd: việc scan wifi và bluetooth -> người dùng nhấn scan thì việc xử lý sẽ do hal và gửi xuống kernel giảm phức tạp cho người sử dụng  
+- Khởi điểm cho user space giúp hiệu suất tốt nhất  
 ### HIDL  
 - HAL -> Service trao đổi qua binder IPC -> 1 service hỏng không ảnh hưởng đến các serice khác trong HAL
 - Conventional HAL : implement thư viện .so -> lỗi thì lỗi toàn bộ
@@ -75,6 +78,61 @@ Tìm hiểu dynamic partition : [AOSP](https://source.android.com/docs/core/ota/
 ### Vendor interface object
 - Device manifest: đăng ký về hal mới viết cho framework -> framework compatibility matrix: đánh giá, chấp nhận quản lý device manifest
     - Hal quan tâm device manifest
-- Device compatibility matrix - framework manifest: tương tự -> frame manifest liên quan đến: system, product, system_ext
+- Device compatibility matrix - framework manifest: tương tự -> frame manifest liên quan đến: system, product, system_ext  
+- Device manifest & framework manifest có dạng như sau:
+```  
+<manifest version="1.0" type="device">
+    <hal format="hidl">
+        <name>vendor.lampt.led</name>
+        <transport>hwbinder</transport>
+        <version>1.0</version>
+        <interface>
+            <name>ILedHidl</name>
+            <instance>default</instance>
+        </interface>
+    </hal>
+</manifest>
+```  
+- Compatibility matrix có dạng như sau: device/nxp/ek_8mm/device_framework...  
+```  
+<compatibility-matrix version="1.0" type="framework">
+    <hal format="hidl" optional="true">
+        <name>vendor.lampt.led</name>
+        <version>1.0</version>
+        <interface>
+            <name>ILedHidl</name>
+            <instance>default</instance>
+        </interface>
+    </hal>
+</compatibility-matrix>
+```  
+### Triển khai file .rc để chạy service
+- service nằm trong /out/target/product/evk_8mm/vendor/bin/hw/  
+```  
+service vendor.lampt.led-1-0 /vendor/bin/hw/vendor.lampt.led@1.0-service
+    interface vendor.lampt.led@1.0::ILedHidl default
+    class hal
+    user system
+    group system
+```  
+- Để boarđ biết dịch vụ cần chạy thì khai báo trong /device/nxp/imx8mm/evk_8mm/evk_8mm.mk (device.mk)
+```  
+PRODUCT_PACKAGES += vendor.lampt.led@1.0-service
+```  
+### Khai báo để cấp quyền sepolyci  
+- Thêm vào device/nxp/imx8mm/sepolicy/file_contexts
+```  
+/vendor/bin/hw/vendor\.lampt\.led@1\.0-service u:object_r:hal_lamptled_exec:s0
+```  
+- Tạo 1 file trong sepolicy : hal_lamptled.te , tạo quyền cần thiết cho service
+```  
+type hal_lamptled, domain;
 
+allow hal_lamptled hal_allocator:fd use;
+type hal_lamptled_exec, exec_type, file_type, vendor_file_type;
+init_daemon_domain(hal_lamptled)
+```  
+### Debug 
+- lshal -> thong tin các service đang chạy trong board
+- logcat | grep -iE "LOG_TAG" -> debug
 

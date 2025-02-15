@@ -1,0 +1,17 @@
+
+cc_binary {
+    name: "LedHidlTest",
+    relative_install_path: "hw",
+    defaults: ["hidl_defaults"],
+    vendor: true, //Code cua vendor khong phai cua android
+    srcs: [
+        "LedHidlTest.cpp"
+    ],
+    shared_libs: [
+        "libhidlbase",
+        "libhardware",
+        "libutils",
+        "liblog",
+        "vendor.lampt.led@1.0",
+    ],
+}

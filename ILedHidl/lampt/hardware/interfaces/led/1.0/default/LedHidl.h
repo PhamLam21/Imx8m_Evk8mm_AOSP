@@ -6,11 +6,7 @@
 #include <hidl/MQDescriptor.h>
 #include <hidl/Status.h>
 
-namespace vendor {
-namespace lampt {
-namespace led {
-namespace V1_0 {
-namespace implementation {
+namespace vendor::lampt::led::implementation {
 
 using ::android::hardware::hidl_array;
 using ::android::hardware::hidl_memory;
@@ -20,10 +16,10 @@ using ::android::hardware::Return;
 using ::android::hardware::Void;
 using ::android::sp;
 
-struct LedHidl : public ILedHidl {
+struct LedHidl : public V1_0::ILedHidl {
     // Methods from ::vendor::lampt::led::V1_0::ILedHidl follow.
-    Return<uint32_t> setLed(uint32_t value) override;
-    Return<uint32_t> getLed() override;
+    Return<bool> setLed(const hidl_string& value) override;
+    Return<void> getLed(getLed_cb _hidl_cb) override;
 
     // Methods from ::android::hidl::base::V1_0::IBase follow.
 
@@ -32,8 +28,4 @@ struct LedHidl : public ILedHidl {
 // FIXME: most likely delete, this is only for passthrough implementations
 // extern "C" ILedHidl* HIDL_FETCH_ILedHidl(const char* name);
 
-}  // namespace implementation
-}  // namespace V1_0
-}  // namespace led
-}  // namespace lampt
-}  // namespace vendor
+}  // namespace vendor::lampt::led::implementation
