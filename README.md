@@ -30,7 +30,22 @@
 **Binder** một giao tiếp liên tiến trình được sử dụng trong AOSP sử dụng kiến trúc: client-server, cơ chế: RPC -> đóng gói, gửi
 - Binder Proxy (Bp) -> client transact (Đã gửi)
 - Binder Stub (Bn) -> server onTransact (Đã nhận)
-- SeLinux: binder -> cau hinh selinux nhung phan duoc su dung
+- SeLinux: binder -> cau hinh selinux nhung phan duoc su dung  
+## AOSP .img và partition quan trọng
+- dtbo-"...".img: Device tree của board
+- vbmeta-"...".img: check mã hash của device tree có match với kernel không tránh lỗi hoặc nạp firm trái phép 
+- system.img: system và root folder
+- system_ext.img: Các service thêm
+- product.img: product folder  
+- partition-table.img: Để android biết sẽ boot từ phân vùng nào lấy thông tin các img từ đâu
+- u-boot-"...".img: đóng gói trong boot.img
+- vendor.img: vendor folder
+- vendor_dlkm.img (Phân vùng động): chứa các mô-đun có thể tải động vào kernel khi cần thiết.
+- super.img: system, system_ext, vendor, vendor_dlkm, product
+- boot.img: u-boot, kernel image ...  
+
+Tìm hiểu partiontion: [AOSP](https://source.android.com/docs/core/architecture/partitions)  
+Tìm hiểu dynamic partition : [AOSP](https://source.android.com/docs/core/ota/dynamic_partitions/implement)  
 ## HAL
 ### HIDL  
 - HAL -> Service trao đổi qua binder IPC -> 1 service hỏng không ảnh hưởng đến các serice khác trong HAL
