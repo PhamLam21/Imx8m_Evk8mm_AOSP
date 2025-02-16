@@ -317,4 +317,4 @@ myService = IFoo:fromBinder(ndk::SpAIBinder(AServiceManager_waitForService("serv
 - File .te: các quyền  
 - Các macro và cách viết file .te
 <p align = "center">
-<img src = "https://github.com/PhamLam21/Imx8m_Evk8mm_AOSP/blob/main/SELinux.jpg" width = "600" height = "600">
+<img src = "https://github.com/PhamLam21/Imx8m_Evk8mm_AOSP/blob/main/SELinux.jpg" width = "800" height = "600">
