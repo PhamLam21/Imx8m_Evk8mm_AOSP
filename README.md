@@ -220,7 +220,7 @@ Java framework sử dụng backend java, ngôn ngữ java
 - Tại thư mục aidl -> chạy lệnh mm để build ra các file include nằm trong out/soong/.intermediates/vender/lampt/harware/interface/led/...
     - AIDL có check các phiên bản thay đổi như nào mỗi lần build -> với lần thay đổi chạy `m vendor.lampt.hardware.led-update-api` tạo ra bản snapshot lưu bản để so sánh với bản sau -> trước khi chạy thay đổi cần chắc chắn cập nhật không vấn đề với các api đã đánh giá chạy ổn định trước
     - Để tạo ra bản giữ cố định chạy `m vendor.lampt.hardware.led-freeze-api`  
-- Các bước tiếp giống với tạo HIDL
+- Các bước tiếp giống với tạo HIDL nhưng AIDL không cần khai báo trong device.mk -> tự động khởi chạy khi được thiết lập quyền đầy đủ trong SELinux
 - file .xml
 ```  
 <manifest version="1.0" type="device">
