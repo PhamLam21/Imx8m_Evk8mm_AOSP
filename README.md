@@ -51,9 +51,28 @@ Tìm hiểu dynamic partition : [AOSP](https://source.android.com/docs/core/ota/
 Vd: việc scan wifi và bluetooth -> người dùng nhấn scan thì việc xử lý sẽ do hal và gửi xuống kernel giảm phức tạp cho người sử dụng  
 - Khởi điểm cho user space giúp hiệu suất tốt nhất  
 ### HIDL  
-- HAL -> Service trao đổi qua binder IPC -> 1 service hỏng không ảnh hưởng đến các serice khác trong HAL
-- Conventional HAL : implement thư viện .so -> lỗi thì lỗi toàn bộ
-- Binderize -> build ra file binary không còn sharelib
+Giai đoạn trước Android 8 (trước Project Treble)  
+Trước khi Android 8.0 (Oreo) ra mắt:  
+- HAL (Hardware Abstraction Layer) được viết bằng C/C++.
+- Dùng shared libraries (.so), liên kết trực tiếp với Android Framework, nạp trực tiếp vào System Process.
+- Framework thay đổi thì HAL cũng phải thay đổi → Tốn nhiều công sức porting driver khi nâng cấp Android.  
+
+Vấn đề lớn:  
+- Vendor HAL được build tĩnh (include vào Framework).
+- Mỗi lần update Android, driver phải rebuild lại, dẫn đến fragmentation.
+- Lỗi trong HAL có thể làm crash cả System Process.  
+
+Project Treble (Android 8.0) tách Vendor HAL ra khỏi Framework.  
+- HIDL dùng hwbinder để giao tiếp giữa Android Framework và HAL.
+- Không cần build lại Vendor HAL khi update Android.
+- Không còn liên kết shared libraries giữa Framework và HAL. 
+- HIDL vẫn có binary .so, nhưng chỉ là IMPLEMENTATION, không còn gắn trực tiếp vào System Process.
+- HAL chạy trong một tiến trình (vendor process) riêng biệt, giao tiếp với System Process qua hwbinder. 
+
+Kết quả:  
+- Android Framework có thể update mà không cần thay đổi driver của vendor.
+- Giảm fragmentation giữa các thiết bị.  
+
 <p align = "center">
 <img src = "https://github.com/PhamLam21/Imx8m_Evk8mm_AOSP/blob/main/20200805204512893.jpg" width = "600" height = "600">  
 
@@ -65,12 +84,13 @@ Vd: việc scan wifi và bluetooth -> người dùng nhấn scan thì việc x�
     - Tạo các file cần thiết
 	- vendor - lampt (thay bang tên cty làm sp) - hardware - interfaces - led (ten HAL) - 1.0 (phien ban)
 	- Tạo 1 file Android.bp ở folder interface -> de khai bao duong dan thu muc moi tao
-	- Tạo 1 file interface .hal và Android.bp -> build ra Hidl interface (lệnh mm)
+	- Tạo 1 file interface .hal và Android.bp -> build ra Hidl interface (lệnh mm) ->
+    out/soong/.intermediates/vender/lampt/harware/interface/led/... -> các file include sẽ nằm ở đây để sử dụng
 	- Tạo generate.sh (hidl-gen) để lấy mẫu thư mục hidl
 	- Chạy generate.sh tạo thư mục default -> trong đó thêm 3 file packagename_service.rc và packagename_service.xml
 	- service.cpp: Để sử dung serice từ hal thì phải đăng ký với hwservicemanager để quản lý = hàm registerAsService(); 
 	- Build xong service nằm ở: out/target/product/evk_8mm/vendor/ lib (32  bit) | lib64 (64 bit)  
-### Hal Server  
+### Hal Service
 - hwservicemanager -> quản lý các service hal được tạo ra để xử lý và tìm service
 - Đăng ký service -> service.cpp
 - Define 1 instance của interface hal mới để đăng ký cho AOSP biết về service hal mới tạo
@@ -135,4 +155,166 @@ init_daemon_domain(hal_lamptled)
 ### Debug 
 - lshal -> thong tin các service đang chạy trong board
 - logcat | grep -iE "LOG_TAG" -> debug
+### AIDL  
+AIDL đã có từ trước HIDL và dùng trong Java Framework.
+- Android Framework cần giao tiếp giữa Service và App → Dùng AIDL qua binder.
+- AIDL chỉ hoạt động trong Java/Kotlin + NDK, không thể dùng cho Vendor HAL.  
 
+Android 11+: HIDL dần bị thay thế bằng AIDL cho HAL  
+- AIDL được mở rộng để thay thế HIDL trong các HAL mới.
+- Từ Android 11, Google khuyến khích dùng AIDL thay vì HIDL.
+- HIDL: Giao tiếp với service phía trên qua jni 
+- AIDL: Bỏ jni -> tường minh trong service và client giao tiếp qua binder IPC
+- Đồng nhất lại kiểu giao tiếp như trên java framework vẫn sử dụng AIDL
+- Kiểm soát version và update dễ quản lý hơn  
+
+Nơi tìm AIDL file:
+- hardware/interfaces
+- frameworks/hardware/interfaces
+- system/hardware/interfaces  
+
+Tạo mới AIDL interfaces:
+- hardware/interfaces
+- hardware/device/vendor hoặc để trong vendor/
+
+AIDL sử dụng backend NDK, ngôn ngữ c++  
+Java framework sử dụng backend java, ngôn ngữ java  
+- Backend Java (AIDL Java) dùng trong Android Framework, giao tiếp với App dễ dàng.
+- Backend NDK (AIDL C++) dùng trong native system services, nhanh hơn và hỗ trợ C++/HAL.
+- Nếu làm việc với HAL hoặc C++ System Services, nên dùng Backend NDK.
+- Nếu làm việc với App hoặc Java Framework, nên dùng Backend Java.  
+
+### Tạo một AIDL 
+- vendor - lampt (thay bang tên cty làm sp) - hardware - interfaces - led (ten HAL) - aidl
+- Tạo file Android.bp  
+    ```  
+    aidl_interface {
+        name: "vendor.lampt.hardware.led",
+        vendor_available: true,
+        srcs: [
+            "vendor/lampt/hardware/led/*.aidl"
+        ],
+        stability: "vintf",
+        owner: "phamlam",
+        backend: {
+            cpp: {
+                enabled: false,
+            },
+            java: {
+                sdk_version: "module_current",
+            },
+        },
+    }
+    ```    
+- vendor - lampt (thay bang tên cty làm sp) - hardware - interfaces - led (ten HAL) - aidl - vendor - lampt - hardware - led
+- Tạo file ILedAidl.aidl  
+    ```  
+    package vendor.lampt.hardware.led;
+
+    @VintfStability
+    interface ILedAidl {
+            int setLed(String value);
+            String getLed();
+    };
+    ```  
+- Tại thư mục aidl -> chạy lệnh mm để build ra các file include nằm trong out/soong/.intermediates/vender/lampt/harware/interface/led/...
+    - AIDL có check các phiên bản thay đổi như nào mỗi lần build -> với lần thay đổi chạy `m vendor.lampt.hardware.led-update-api` tạo ra bản snapshot lưu bản để so sánh với bản sau -> trước khi chạy thay đổi cần chắc chắn cập nhật không vấn đề với các api đã đánh giá chạy ổn định trước
+    - Để tạo ra bản giữ cố định chạy `m vendor.lampt.hardware.led-freeze-api`  
+- Các bước tiếp giống với tạo HIDL
+- file .xml
+```  
+<manifest version="1.0" type="device">
+    <hal format="aidl">
+        <name>vendor.lampt.hardware.led</name>
+        <version>1</version>
+        <fqname>ILedAidl/default</fqname>
+    </hal>
+</manifest>
+```  
+- file .rc
+```  
+service vendor.lampt.hardware.led-service /vendor/bin/hw/vendor.lampt.hardware.led-service
+    interface aidl vendor.lampt.hardware.led.ILedAidl/default
+    class hal
+    user system
+    group system
+```  
+### Hal Service
+- Quản lý bởi servicemanager  
+
+Các API để đăng ký và sử dụng service:  
+- register<addService>  
+- getting<getService>  
+- wait<waitForService> -> try liên tục để đăng ký với servicemanager đến khi đk service thành công
+
+```  
+#include<android/binder_manager.h>
+
+//registering
+binder_exception_t err = AServiceManager_addService(myService->asBinder().get(), "service-name");
+//return if service is started now
+myService = IFoo:fromBinder(ndk::SpAIBinder(AServiceManager_checkService("service-name")));
+//is a service declared in the VINTF manifest
+//VINTF services have the type in the interface instance name 
+bool isDeclared = AServiceManager_isDeclared("android.hardware.light.ILights/default");
+//wait until a service is available (if isDeclared of you know it's available)
+myService = IFoo:fromBinder(ndk::SpAIBinder(AServiceManager_waitForService("service-name")));
+```  
+
+### Annotations
+- nullable : version 7 
+- utf8InCpp: 7
+- VintfStability: 11 -> đánh giá trong 2 phần interface với Android.bp phía trên để match với nhau -> build sẽ check version 1 với version 2 có stable không
+- UnsupportedAppUsage: 10
+- Hide: 11
+- Backing: 11
+- NdkOnlyStableParcelable: 14
+- JavaOnlyStableParcelable: 11
+- JavaDerive: 12
+- JavaPassthrough: 12
+- FixedSize: 12
+- Descriptor: 12
+
+## SELinux
+- Kiểm tra quyền của các chức năng, service  
+- MAC (Mandatory Access Controls): tạo bởi OS/vendor -> tùy chỉnh labels u:oject_t:"name-label":s0
+- DAC (Discreptionary Access Controls) : quyền rwx của 1 file
+- Check quyền: getenforce 
+    - permissive = 0 -> cảnh báo chứ không chặn
+    - enforcing = 1 -> chặn 
+- Cập nhật quyền: setenforce = 0/1
+- Device driver: selinuxfs 
+    - Lưu trong database -> AVC cache
+    - AVC cache: lưu quyền trung gian check qua cache luôn nhanh hơn -> server check quyền
+    - server <-> abtract(lớp nằm giữa giao tiếp) <-> linux serciurity modules <- DAC
+- Cách hoạt động:
+    - user space -> system call
+    - check errors
+    - DAC checks -> check quyền rwx
+    - LSM Hook -> Linux seciurity module check -> AVC, selinux serciurity 
+    - Return for system call
+
+### Finding SELinux file
+- system/policy
+- Từ Android 8 -> /system hợp với /vendor
+- system/policy/public: Define quyền cho cả system và vendor
+    - thêm tính năng mới 
+- system/policy/private: Cho system
+- system/policy/vendor: Cho vendor 
+- BOARD_SEPOLICY_DIRS: địa chỉ thư mục sử dụng sepolicy
+- SYSTEM_EXT_PUBLIC_SEPOLICY_DIRS: thường sử dụng khi tích hợp app và framework
+### Tool debug cho selinux
+- audit2allow: In ra dmesg thông báo thiếu quyền gì cho 1 service  
+`adb logcat -b events -d | grep vendor.lampt.led | audit2allow -p policy` tìm quyền thiếu  
+- chcon: thay đổi quyền 
+- restorecon: trả về quyền default  
+### Writing sepolicy
+- Các _contexts: gắn nhãn lable
+    - file_contexts: label to file
+    - genfs_contexts: label của filesystem -> usb, ... -> cấp quyền cho file system mới
+    - property label: kiểu string, `getprop` để check property lable, `setprop "name-prop" "giá trị"` thay đổi giá trị ở terminal, có thể lấy giá trị trong code bằng hàm `getprop()`  
+    - services_contexts:
+- File .te: các quyền  
+- Các macro và cách viết file .te
+<p align = "center">
+<img src = "https://github.com/PhamLam21/Imx8m_Evk8mm_AOSP/blob/main/SELinux.jpg" width = "600" height = "600">
