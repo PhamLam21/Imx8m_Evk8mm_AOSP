@@ -283,9 +283,9 @@ myService = IFoo:fromBinder(ndk::SpAIBinder(AServiceManager_waitForService("serv
     - permissive = 0 -> cảnh báo chứ không chặn
     - enforcing = 1 -> chặn 
 - Cập nhật quyền: setenforce = 0/1
-- Device driver: selinuxfs 
-    - Lưu trong database -> AVC cache
-    - AVC cache: lưu quyền trung gian check qua cache luôn nhanh hơn -> server check quyền
+- Device driver: selinuxfs -> bật board lên sẽ chạy 1 lần lưu từ database vào AVC
+    - Lưu trong database (chứa secuirity) -> AVC (access vector cache) lưu thông tin quyền ở cache
+    - AVC cache: lưu quyền trung gian check qua cache luôn nhanh hơn <-> server check quyền 
     - server <-> abtract(lớp nằm giữa giao tiếp) <-> linux serciurity modules <- DAC
 - Cách hoạt động:
     - user space -> system call
@@ -303,7 +303,10 @@ myService = IFoo:fromBinder(ndk::SpAIBinder(AServiceManager_waitForService("serv
 - system/policy/vendor: Cho vendor 
 - BOARD_SEPOLICY_DIRS: địa chỉ thư mục sử dụng sepolicy
 - SYSTEM_EXT_PUBLIC_SEPOLICY_DIRS: thường sử dụng khi tích hợp app và framework
-### Tool debug cho selinux
+- Các macro define quyền trong selinux cho file .te: [te_macro](https://android.googlesource.com/platform/system/sepolicy/+/refs/heads/master/public/te_macros)  
+    - Các macro hay dùng: binder_Call, init_daemon_domain, ...  
+### Tool debug cho selinux  
+- pull file database từ board về máy: `adb pull /sys/fs/selinux/policy`  
 - audit2allow: In ra dmesg thông báo thiếu quyền gì cho 1 service  
 `adb logcat -b events -d | grep vendor.lampt.led | audit2allow -p policy` tìm quyền thiếu  
 - chcon: thay đổi quyền 
@@ -312,9 +315,13 @@ myService = IFoo:fromBinder(ndk::SpAIBinder(AServiceManager_waitForService("serv
 - Các _contexts: gắn nhãn lable
     - file_contexts: label to file
     - genfs_contexts: label của filesystem -> usb, ... -> cấp quyền cho file system mới
-    - property label: kiểu string, `getprop` để check property lable, `setprop "name-prop" "giá trị"` thay đổi giá trị ở terminal, có thể lấy giá trị trong code bằng hàm `getprop()`  
-    - services_contexts:
+    - property_contexts: kiểu string, `getprop` để check property lable, `setprop "name-prop" "giá trị"` thay đổi giá trị ở terminal, có thể lấy giá trị trong code bằng hàm `getprop()`  
+    - hwservice_contexts: service hidl
+    - service_contexts: service aidl  
 - File .te: các quyền  
 - Các macro và cách viết file .te
 <p align = "center">
 <img src = "https://github.com/PhamLam21/Imx8m_Evk8mm_AOSP/blob/main/SELinux.jpg" width = "800" height = "600">
+- allow: cho phép quyền
+- dontaudit: ẩn các thông tin muốn ẩn
+- neverallow: cấm quyền 
