@@ -1,0 +1,5 @@
+service vendor.lampt.hardware.led-service /vendor/bin/hw/vendor.lampt.hardware.led-service
+    interface aidl vendor.lampt.hardware.led.ILedAidl/default
+    class hal
+    user system
+    group system

@@ -1,0 +1,27 @@
+// FIXME: your file license if you have one
+
+cc_binary {
+    name: "vendor.lampt.hardware.led-service",
+    relative_install_path: "hw",
+    vendor: true, //Code cua vendor khong phai cua android
+    init_rc: ["vendor.lampt.hardware.led-service.rc"],
+    vintf_fragments: ["vendor.lampt.hardware.led-service.xml"],
+    srcs: [
+        "LedAidl.cpp",
+        "service.cpp",
+    ],
+    cflags: [
+    	"-Wall",
+	    "-Werror",
+    ],
+    shared_libs: [
+        "libbase",
+        "liblog",
+        "libhardware",
+	    "libutils",
+	    "libbinder_ndk",
+        "libbinder",
+        "vendor.lampt.hardware.led-V1-ndk",
+    ],
+}
+

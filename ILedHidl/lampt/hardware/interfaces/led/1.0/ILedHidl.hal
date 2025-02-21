@@ -1,7 +1,0 @@
-package vendor.lampt.led@1.0;
-
-interface ILedHidl {
-	setLed(string value) generates (bool success);
-	getLed() generates (string value);
-};
-

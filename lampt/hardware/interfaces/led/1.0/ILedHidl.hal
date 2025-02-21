@@ -1,0 +1,6 @@
+package vendor.lampt.led@1.0;
+
+interface ILedHidl {
+	setLed(string value) generates (bool isSet);
+	getLed() generates (string status);
+};

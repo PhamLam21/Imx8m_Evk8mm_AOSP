@@ -295,7 +295,7 @@ myService = IFoo:fromBinder(ndk::SpAIBinder(AServiceManager_waitForService("serv
     - Return for system call
 
 ### Finding SELinux file
-- system/policy
+- system/sepolicy
 - Từ Android 8 -> /system hợp với /vendor
 - system/policy/public: Define quyền cho cả system và vendor
     - thêm tính năng mới 
@@ -315,7 +315,7 @@ myService = IFoo:fromBinder(ndk::SpAIBinder(AServiceManager_waitForService("serv
 - Các _contexts: gắn nhãn lable
     - file_contexts: label to file
     - genfs_contexts: label của filesystem -> usb, ... -> cấp quyền cho file system mới
-    - property_contexts: kiểu string, `getprop` để check property lable, `setprop "name-prop" "giá trị"` thay đổi giá trị ở terminal, có thể lấy giá trị trong code bằng hàm `getprop()`  
+    - property_contexts: kiểu string, `getprop` để check property lable, `setprop "name-prop" "giá trị"` thay đổi giá trị ở terminal,   
     - hwservice_contexts: service hidl
     - service_contexts: service aidl  
 - File .te: các quyền  
@@ -331,3 +331,17 @@ myService = IFoo:fromBinder(ndk::SpAIBinder(AServiceManager_waitForService("serv
 <img src = "https://github.com/PhamLam21/Imx8m_Evk8mm_AOSP/blob/main/BinderSepolicy.jpg" width = "800" height = "600">  
 
 - Cú pháp file contexts: [file contexts](https://android.googlesource.com/platform/system/sepolicy/+/refs/heads/main/private/file_contexts)
+- Khai báo label service: hidl -> hwservice_contexts , aidl -> service_contexts
+- Khai báo type cho service: [Type](https://android.googlesource.com/platform/system/sepolicy/+/master/public/attributes)  
+
+### Property_contexts
+- Sử dụng để thay đổi giá trị của biến trong code từ terminal   
+- Có thể lấy giá trị trong code bằng hàm `android::base::GetProperty(key, default_value)`  
+```  
+constexpr char ledValueProperty[] = "vendor.led.value"
+#define LED_DEFAULT 1
+
+std::string ledValue;
+ledValue = android::base::GetProperty(ledValueProperty, std::to_string(LED_DEFAULT));
+```  
+

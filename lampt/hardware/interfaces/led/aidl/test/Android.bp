@@ -1,0 +1,21 @@
+
+cc_binary {
+    name: "LedAidlTest",
+    relative_install_path: "hw",
+    vendor: true, //Code cua vendor khong phai cua android
+    srcs: [
+        "LedAidlTest.cpp"
+    ],
+    cflags: [
+    	"-Wall",
+	    "-Werror",
+    ],
+    shared_libs: [
+        "libbase",
+        "libutils",
+        "liblog",
+        "libbinder",
+        "libbinder_ndk",
+        "vendor.lampt.hardware.led-V1-ndk",
+    ],
+}
