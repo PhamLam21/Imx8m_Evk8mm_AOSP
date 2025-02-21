@@ -329,3 +329,5 @@ myService = IFoo:fromBinder(ndk::SpAIBinder(AServiceManager_waitForService("serv
 - Binder Sepolicy: 
 <p align = "center">
 <img src = "https://github.com/PhamLam21/Imx8m_Evk8mm_AOSP/blob/main/BinderSepolicy.jpg" width = "800" height = "600">  
+
+- Cú pháp file contexts: [file contexts](https://android.googlesource.com/platform/system/sepolicy/+/refs/heads/main/private/file_contexts)
