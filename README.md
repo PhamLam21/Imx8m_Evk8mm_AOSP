@@ -26,6 +26,7 @@ Cách thêm drive của mình tự build: vendor - nxp-opensource - kernel_nxp -
     ```  
 Cách để load driver vào board để mỗi khi khởi động có sẵn driver: 
 - device -> (board) -> SharedBoardConfig.mk -> them module .ko vao  
+
 Khi build xong tìm file .ko trong: out -> targer - product -> evk_8mm -> obj -> KERNEL_OBJ -> drivers  
 ## GKI modules  
 <p align = "center">
