@@ -15,6 +15,18 @@
 - Android runtime -> virtual machine 
 - Hardware abstraction layer ->  lớp trừu tượng hardware -> giao tiếp với hardware thật -> cung cấp func, api cho các lớp trên
 - Linux kernel  
+## Kernel  
+Viết driver mới: Trong vendor -> nxp-opensource -> kernel_nxp -> drivers -> tao folder cua minh -> them .c , Makefile  
+
+Cách thêm drive của mình tự build: vendor - nxp-opensource - kernel_nxp - arch - arm64 - configs - ten_board_gki.fragment  
+- Thêm: 
+    ```  
+    CONFIG_LED_DEMO=y -> tạo .ko
+    CONFIG_LED_DEMO=m -> tạo module 
+    ```  
+Cách để load driver vào board để mỗi khi khởi động có sẵn driver: 
+- device -> (board) -> SharedBoardConfig.mk -> them module .ko vao  
+Khi build xong tìm file .ko trong: out -> targer - product -> evk_8mm -> obj -> KERNEL_OBJ -> drivers  
 ## GKI modules  
 <p align = "center">
 <img src = "https://static1.xdaimages.com/wordpress/wp-content/uploads/2021/09/New-GKI-apprach-to-isolate-vendor-modules-reduce-fragmentation.jpg" width = "400" height = "200">  
@@ -344,4 +356,11 @@ constexpr char ledValueProperty[] = "vendor.led.value"
 std::string ledValue;
 ledValue = android::base::GetProperty(ledValueProperty, std::to_string(LED_DEFAULT));
 ```  
+- Để khai báo 1 key như "vendor.led.value" trong board:
+    - Khai báo label trong property_contexts `vendor.led.value`
+    - Cấp quyền trong property.te: `vendor_internal_inti()`
+    - Khai báo setprop trong init.rc -> file giống shell
+    - Cấp quyền trong board_init.te cho câu lệnh ở init.rc
+    - Cấp quyền cho label để sử dụng property: `set_prop(hal_lamptled_default, vendor_led_prop)`
+
 
