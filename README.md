@@ -359,9 +359,52 @@ ledValue = android::base::GetProperty(ledValueProperty, std::to_string(LED_DEFAU
 ```  
 - Để khai báo 1 key như "vendor.led.value" trong board:
     - Khai báo label trong property_contexts `vendor.led.value`
-    - Cấp quyền trong property.te: `vendor_internal_inti()`
-    - Khai báo setprop trong init.rc -> file giống shell
-    - Cấp quyền trong board_init.te cho câu lệnh ở init.rc
-    - Cấp quyền cho label để sử dụng property: `set_prop(hal_lamptled_default, vendor_led_prop)`
+    - Cấp quyền trong property.te: `vendor_internal_init()`
+    - Khai báo setprop trong device/nxp/imx8m/evk_8mm/init.rc -> file giống shell
+    - Cấp quyền setprop cho vendor_prop trong vendor_init.te
+    - Cấp quyền cho label vendor_prop trong file .te của service
+    - Cấp quyền cho label để sử dụng property: `set_prop(hal_lamptled_default, vendor_led_prop)`  
+## Booting process
+- Power on -> Boot Loader -> Linux Kernel -> Init -> Zygote -> System Server -> System UI -> Launcher
+    - Uboot: 4 stage 
+        - Arm trusted firmware
+        - Secure boot: tránh boot firmware mới từ người dùng  
+    - Initialization:  
+        - kernel -> init -> Installd, adbd, servicemanager  
+                         -> Zygote -> system service
+                                   -> App 1, app 2, ... app n
+        - system/core/init: pid = 1
+        - [Optimize time booting tool](https://www.embien.com/blog/android-boot-time-optimization-tools-analysis)
+    - Zygote: Nằm giữa c++ framework và java framework
+        - Zygote khởi tạo android runtime 
+        - Zygote có 1 nhiệm vụ duy nhất là để chạy application -> parent quả tất cả tiến trình app
+        - Bấm vào 1 app -> chạy zygote -> tạo DVM/ART -> call hàm main() method
+        - Open socket /dev/socket/zygote để lắng nghe requests bắt đầu chạy app  
+    - Zygote x application: 
+        - Tách biệt viture space với physical memory space
+        - Child process đều có đầy đủ tài nguyên tách biết với zygote process tránh conflict  
+- Android runtime:
+    - Compiling mechanism: file apk -> có file .dex bao gồm source code của app và các lib sử dụng (bytecode) -> android runtime thành machine code  
+    - Dalvik virtual machine: JIT -> just in time compilation 
+        - compiles bytecode to machine code at runtime -> app chạy đến đâu mới compile đến đấy -> low memoru usage
+        - Nhược điểm: app chạy chậm
+    - Android runtime: AOT -> Ahead of time compilation
+        - Tất cả bytecode được compile hết trong lúc cài đặt -> chạy app không giật 
+        - Nhược điểm: Tốn ram hơn dalvik, tốn thời gian cài đặt
+    - Giải pháp kết hợp AOT và JIT:
+        - Cài đặt 1 app -> có service đánh giá hot app hay sử dụng -> lưu ra file OAT -> từ những lần sau người dúng cài ứng dụng thì cài kiểu JIT xong check trong OAT có ứng dụng đó không nếu có -> từ lần 2 chạy app đó theo kiểu AOT
+        - Nhược điểm: phải dùng app đủ nhiều
+    - Profile in the cloud:
+        - Thu thập thông tin OAT của tất cả người dùng up lên cloud và xử lý đưa ra core profile của hot app toàn thế giới -> để đánh giá app cài theo cách nào  
+- System server:
+    - Sau khi zygote chạy -> init app 
+                          -> start system server 
+    - Trong system server có nhiều service được quản lý bởi servicemanager
+    - BootstrapServices: Các tính năng quan trọng -> power, activity. installer. light, display, user, sensor, package manager service... -> không nên động vào, đọc 
+    - CoreService: service cốt lõi -> batery, usage stats service , ... -> không nên động vào, đọc
+    - OrtherService: camera, alarm, audio, ... -> thường làm  
+- Tổng kết quá trình booting process:  
+<p align = "center">
+<img src = "https://github.com/PhamLam21/Imx8m_Evk8mm_AOSP/blob/main/BootingProcess.jpg" width = "800" height = "600">  
 
 
