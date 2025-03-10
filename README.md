@@ -370,9 +370,7 @@ ledValue = android::base::GetProperty(ledValueProperty, std::to_string(LED_DEFAU
         - Arm trusted firmware
         - Secure boot: tránh boot firmware mới từ người dùng  
     - Initialization:  
-        - kernel -> init -> Installd, adbd, servicemanager  
-                         -> Zygote -> system service
-                                   -> App 1, app 2, ... app n
+        - kernel -> init -> Installd, adbd, servicemanager | Zygote -> system service | App 1, app 2, ... app n  
         - system/core/init: pid = 1
         - [Optimize time booting tool](https://www.embien.com/blog/android-boot-time-optimization-tools-analysis)
     - Zygote: Nằm giữa c++ framework và java framework
@@ -397,8 +395,7 @@ ledValue = android::base::GetProperty(ledValueProperty, std::to_string(LED_DEFAU
     - Profile in the cloud:
         - Thu thập thông tin OAT của tất cả người dùng up lên cloud và xử lý đưa ra core profile của hot app toàn thế giới -> để đánh giá app cài theo cách nào  
 - System server:
-    - Sau khi zygote chạy -> init app 
-                          -> start system server 
+    - Sau khi zygote chạy -> init app | start system server  
     - Trong system server có nhiều service được quản lý bởi servicemanager
     - BootstrapServices: Các tính năng quan trọng -> power, activity. installer. light, display, user, sensor, package manager service... -> không nên động vào, đọc 
     - CoreService: service cốt lõi -> batery, usage stats service , ... -> không nên động vào, đọc
