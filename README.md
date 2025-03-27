@@ -404,4 +404,55 @@ ledValue = android::base::GetProperty(ledValueProperty, std::to_string(LED_DEFAU
 <p align = "center">
 <img src = "https://github.com/PhamLam21/Imx8m_Evk8mm_AOSP/blob/main/BootingProcess.jpg" width = "800" height = "600">  
 
+## System service
+- Yếu tố liên quan đến trải nghiệm người dùng  
+- Framework sẽ xử lý logic là chính để đẩy lên app quan trọng tương tác với người dùng: ví dụ scan wifi -> HAL sẽ cung cấp các wifi phần cứng scan được đẩy lên framework -> lọc các wifi có tín hiệu kém và đưa các wifi đạt chuẩn cho app -> app không cần xử lý quét các wifi không đạt chuẩn  
+- Luồng chạy: app -> java framework -> jni -> native framework -> Binder IPC -> HAL Server -> HAL -> Linux Kernels
+- System server: quản lý những service core trong android
+- System service: service nằm trong system process  
+- Key tra cứu: application framework, user interface, connectivity, telephone, location and sensors, security, ... 
+- Service finding: 
+    - frameworks/base/services/core/java/com/android/server
+    - frameworks/base/services/java/com/android/server
+    - frameworks/base/core/java/android/hardware/
+    - packages/services/Car/service/src/com/android/
+- framework/base/services:
+    - Implement OS core 
+    - Tránh sửa đổi
+- packages/service:
+    - Phần chính sẽ làm việc
+- User process - AIDL interface - SystemService process  
+### Service types: 
+- Thêm service mới sẽ phải nằm trong 3 loại này:
+    - Foreground service:
+        - Hiển thị cho người dùng 
+        - VD: Navigatine apps, assistant
+        - Ít khi bị kill 
+    - Background service:
+        - Không hiển thị cho người dùng
+        - VD: syncing data, file upload
+        - Có thể bị kill nếu cần giảm tải hệ thống
+- Request permissions: file AndroidManifest
+    - Để tạo 1 foreground service cần cấp uses-permission trong file manifest
+    - `<uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>`
+    - `<uses-permission android:name="android.permission.FOREGROUND_SERVICE_CAMERA"/>` : nếu cần thêm các quyền truy cập thiết bị 
+- Tạo aidl interface: 
+    - File build.gradle.kts: thêm buildFeatures { aidl = true } -> để cho phép tạo aidl  
+- App -> LedManager -> (Foreground Service + LedDtasServiceImp(các hàm để gọi xuống)) -> Led AIDL Hal
 
+## Đọc UML class
+- -> Đen, liền: Depend , vd: 1 class kế thừa 1 class và phụ thuộc vào các hàm trong class đó
+    ```  
+    class Html : public Report {
+        std::cout << "Html report ";
+        reportFormat();
+    }
+    class Report() {
+        void reportFormat() {
+            std::cout << "Date: ";
+        }
+    }
+    ```  
+- -> Trắng, đứt đoạn: Relization, thể hiện 1 interface thiết kế 1 cấu trúc chung cho các bên triển khai 
+- -<> Trắng 0..* thể hiển 0 hoặc nhiều: Aggregation: 2 bên có mối liên hệ với nhau, nhưng có liên hệ cũng được hoặc không có cũng không sao
+- -> Đen, đứt đoạn: Depend có phụ thuộc nhưng không quan trọng nhất -> có thể sử dụng phương thức khác  
