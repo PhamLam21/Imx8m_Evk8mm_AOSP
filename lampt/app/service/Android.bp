@@ -1,0 +1,29 @@
+java_library {
+    name: "LedLamptServiceAidl",
+    sdk_version: "current",
+    srcs: [
+        "src/main/aidl/**/*.aidl",
+    ],
+    aidl: {
+        local_include_dirs: ["src/main/aidl"],
+    },
+}
+
+android_app {
+    name: "LedLamptService",
+    manifest: "src/main/AndroidManifest.xml",
+    certificate: "platform",
+    system_ext_specific: true,
+    privileged: true,
+    platform_apis: true,
+
+    srcs: ["src/main/java/**/*.java"],
+    //resource_dirs: ["src/main/res"],
+    static_libs: [
+        "LedLamptServiceAidl",
+        "androidx.annotation_annotation",
+        "androidx.preference_preference",
+        "vendor.lampt.hardware.led-V2-java",
+        "Slogf",
+    ],
+}

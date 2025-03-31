@@ -1,6 +1,10 @@
 #pragma once //Tranh viec include 2 lan file .h
 
 #include<aidl/vendor/lampt/hardware/led/BnLedAidl.h> 
+#include<string>
+#include<android-base/properties.h>
+#include<utils/Log.h>
+#include<fstream>
 
 namespace aidl {
 namespace vendor {

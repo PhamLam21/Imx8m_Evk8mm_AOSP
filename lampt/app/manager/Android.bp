@@ -1,0 +1,12 @@
+java_library_static {
+    name: "LedLamptManager",
+    sdk_version: "current",
+
+    srcs: [
+        "src/main/java/**/*.java",
+    ],
+    libs: ["androidx.annotation_annotation"],
+    static_libs: [
+        "LedLamptServiceAidl",
+    ],
+}

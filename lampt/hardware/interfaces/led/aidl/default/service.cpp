@@ -9,7 +9,7 @@
 using aidl::vendor::lampt::hardware::led::LedAidl;
 int main() {
     // Bat vndbinder de giao tiep vendor-vendor
-    android::ProcessState::initWithDriver("/dev/vndbinder");
+    // android::ProcessState::initWithDriver("/dev/vndbinder");
 
     ABinderProcess_setThreadPoolMaxThreadCount(0);
     ABinderProcess_startThreadPool();

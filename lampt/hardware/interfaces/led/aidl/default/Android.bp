@@ -21,6 +21,7 @@ cc_binary {
 	    "libutils",
 	    "libbinder_ndk",
         "libbinder",
+        "libc++",
         "vendor.lampt.hardware.led-V1-ndk",
     ],
 }

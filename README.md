@@ -404,7 +404,9 @@ ledValue = android::base::GetProperty(ledValueProperty, std::to_string(LED_DEFAU
 <p align = "center">
 <img src = "https://github.com/PhamLam21/Imx8m_Evk8mm_AOSP/blob/main/BootingProcess.jpg" width = "800" height = "600">  
 
-## System service
+## System service 
+- System server: quản lý những core service  
+- Các service khác được quản lý bởi servicemanager  
 - Yếu tố liên quan đến trải nghiệm người dùng  
 - Framework sẽ xử lý logic là chính để đẩy lên app quan trọng tương tác với người dùng: ví dụ scan wifi -> HAL sẽ cung cấp các wifi phần cứng scan được đẩy lên framework -> lọc các wifi có tín hiệu kém và đưa các wifi đạt chuẩn cho app -> app không cần xử lý quét các wifi không đạt chuẩn  
 - Luồng chạy: app -> java framework -> jni -> native framework -> Binder IPC -> HAL Server -> HAL -> Linux Kernels
@@ -412,9 +414,9 @@ ledValue = android::base::GetProperty(ledValueProperty, std::to_string(LED_DEFAU
 - System service: service nằm trong system process  
 - Key tra cứu: application framework, user interface, connectivity, telephone, location and sensors, security, ... 
 - Service finding: 
-    - frameworks/base/services/core/java/com/android/server
-    - frameworks/base/services/java/com/android/server
-    - frameworks/base/core/java/android/hardware/
+    - frameworks/base/services/core/java/com/android/server -> Các service
+    - frameworks/base/services/java/com/android/server -> Server quản lý service
+    - frameworks/base/core/java/android/hardware/ -> AIDL giữa app và system process
     - packages/services/Car/service/src/com/android/
 - framework/base/services:
     - Implement OS core 
@@ -438,8 +440,22 @@ ledValue = android::base::GetProperty(ledValueProperty, std::to_string(LED_DEFAU
     - `<uses-permission android:name="android.permission.FOREGROUND_SERVICE_CAMERA"/>` : nếu cần thêm các quyền truy cập thiết bị 
 - Tạo aidl interface: 
     - File build.gradle.kts: thêm buildFeatures { aidl = true } -> để cho phép tạo aidl  
-- App -> LedManager -> (Foreground Service + LedDtasServiceImp(các hàm để gọi xuống)) -> Led AIDL Hal
-
+- App -> LedManager -> (IledLamptService) LedLamptServiceImp -> LedHalClient -> Led AIDL Hal
+- Start 1 foreground service: 
+    - Extends Service: Lấy API: getService để sử dụng -> connect tới system service quản lý các service còn kết nối tới HAL service  
+    - onStartCommand: startForegroundService(); 
+    - return START_NOT_STICKY/START_STICK: nếu service bị dừng thì có restart lại không  
+    - return START_REDELEVER_INTENT: Service restart sau khi bị crash và xử lý lại ví dụ download file -> mất mạng ngừng xử lý có mạng thì quay lại  
+    - Lưu ý:
+        - Notification: Thông báo đến người dùng vd: icon
+            - Tạo channel (Notification channel): id, description, độ quan trọng (NotificationManager)
+            - setLockscreenVisibility(): có thông báo trong màn hình khóa không  
+            - Gọi 1 NotificationManager để quản lý = getSystemService 
+            - Create 1 channel vừa tạo ở trên
+            - Dựa trên các thông tin khai báo trên build 1 notification với Notification.Builder  
+        - StartForeground
+### Media Server
+- Quản lý nhưng service: audio, media, camera, sensor  
 ## Đọc UML class
 - -> Đen, liền: Depend , vd: 1 class kế thừa 1 class và phụ thuộc vào các hàm trong class đó
     ```  
